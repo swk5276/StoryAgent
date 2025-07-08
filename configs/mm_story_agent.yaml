@@ -1,0 +1,85 @@
+story_dir: &story_dir generated_stories/example
+
+# 수정 story_topic, main_role, scene => full_text_input
+story_writer:
+  tool: qa_outline_story_writer
+  cfg:
+    max_conv_turns: 0
+    temperature: 0.5
+    num_outline: 6
+    
+  params:
+    full_context: >
+      Once upon a time in a small village in Joseon-era Korea, there lived two brothers named Heungbu and Nolbu. Heungbu was kind-hearted, humble, and poor, while Nolbu was wealthy but greedy and cruel. After their father's death, Nolbu took all the inheritance and forced Heungbu and his family to live in poverty. One day, Heungbu found an injured swallow and gently cared for it until it healed. In gratitude, the swallow brought Heungbu a magical gourd seed. When Heungbu planted the seed, it grew into a giant gourd filled with gold, rice, and treasures. With these riches, Heungbu and his family became prosperous, yet he remained generous and kind. When Nolbu heard of Heungbu’s fortune, he became jealous and plotted to do the same. He found a swallow and cruelly broke its leg, hoping it would bring him a magical seed as well. The swallow returned with a seed, and Nolbu planted it eagerly. But when the gourds grew, they burst open to release goblins, snakes, and curses, destroying his house and wealth. Left with nothing, Nolbu begged Heungbu for forgiveness. Heungbu, being compassionate, welcomed his brother and helped him recover. Through this, Nolbu realized the consequences of his greed and the importance of kindness, and the two brothers lived in harmony ever after.
+
+          #sound_generation:
+          #tool: audioldm2_t2a
+          #cfg:
+          # num_turns: 3
+          #device: cuda
+          #sample_rate: &sample_rate 16000
+          #params:
+          #guidance_scale: 3.5
+          #seed: 0
+          #ddim_steps: 200
+          #n_candidate_per_text: 3
+
+
+speech_generation:
+    tool: cosyvoice_tts
+    cfg:
+        sample_rate: &sample_rate 16000
+    params:
+        voice: ko-KR-SunHiNeural
+
+
+image_generation:
+    tool: story_diffusion_t2i
+    cfg:
+        num_turns: 3
+        model_name: stabilityai/stable-diffusion-xl-base-1.0
+        id_length: 2
+        height: &image_height 512
+        width: &image_width 1024
+    params:
+        seed: 112536
+        guidance_scale: 10.0
+        style_name: "Storybook" # ['(No style)', 'Japanese Anime', 'Digital/Oil Painting', 'Pixar/Disney Character', 
+                                #  'Photographic', 'Comic book', 'Line art', 'Black and White Film Noir', 'Isometric Rooms']
+
+music_generation:
+    tool: musicgen_t2m
+    cfg:
+        llm_type: qwen
+        num_turns: 3
+        device: cuda
+    params:
+        duration: 30.0
+
+video_compose:
+    tool: slideshow_video_compose
+    cfg:
+        {}
+    params:
+        height: *image_height
+        width: *image_width
+        story_dir: *story_dir
+        fps: 8
+        audio_sample_rate: *sample_rate
+        audio_codec: mp3
+        caption:
+            font: resources/font/msyh.ttf
+            # bg_color: LightGrey
+            fontsize: 32
+            color: white
+            # stroke_color: white
+            # stroke_width: 0.5
+            max_length: 50
+        slideshow_effect:
+            bg_speech_ratio: 0.6
+            sound_volume: 0.6
+            music_volume: 0.5
+            fade_duration: 0.8
+            slide_duration: 0.4
+            zoom_speed: 0.5
+            move_ratio: 0.9

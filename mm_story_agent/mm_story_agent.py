@@ -251,7 +251,7 @@ class SceneExtractorAgent:
         self.llm_type = cfg.get("llm", "qwen")
 
         # 각 역할의 LLM 초기화
-        print("[INFO] Initializing expert LLM...")
+        print("[INFO] 전문가 LLM 초기화")
         self.expert = init_tool_instance({
             "tool": self.llm_type,
             "cfg": {
@@ -260,7 +260,7 @@ class SceneExtractorAgent:
             }
         })
 
-        print("[INFO] Initializing amateur LLM...")
+        print("[INFO] 아마추어 LLM 초기화")
         self.amateur = init_tool_instance({
             "tool": self.llm_type,
             "cfg": {
@@ -269,7 +269,7 @@ class SceneExtractorAgent:
             }
         })
 
-        print("[INFO] Initializing refiner LLM...")
+        print("[INFO] 정제 LLM 초기화")
         self.refiner = init_tool_instance({
             "tool": self.llm_type,
             "cfg": {

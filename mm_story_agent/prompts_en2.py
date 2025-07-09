@@ -10,7 +10,7 @@ instruction = """
 """.strip()
 
 # mm_story_agent/prompts_en2.py
-
+# 처음 입력 들어온 텍스트 정제하기
 refine_writer_system = """
 Please refine the following story text for clarity and grammar, while preserving its original tone, oral storytelling style, and character voice.
 Avoid removing unique expressions or colloquial phrases unless they interfere with understanding.
@@ -20,21 +20,7 @@ Simplify or remove redundant or confusing sentences. Format it into clean paragr
 Return the fully polished story as one coherent text, with paragraph breaks.
 """
 
-# scene_extractor_system = """
-# Based on the full story, divide it into clear, coherent scenes. 
-# Each scene should describe a single event or moment that can be easily illustrated.
-# Focus on visual elements and actions rather than abstract thoughts or narration.
-
-# # Output Format
-# [
-#   "Scene 1 description",
-#   "Scene 2 description",
-#   ...
-# ]
-# Each scene should be 1–3 sentences long and easy to visualize.
-# """
-
-# scene 전문가 <=> 아마추어 시스템
+# scene extractoer [ expert <=> amateur ]
 scene_expert_system = """
 You are a professional storytelling expert. Given the full story, extract a draft list of key scenes. 
 Each scene must describe a distinct **visual event or action**, not abstract thoughts. 
@@ -135,7 +121,6 @@ If you are satisfied, say: “Thank you for your help!” to end the discussion.
 """.strip()
 
 
-
 # 변경
 
 # 대화 기반 아이디어 생성 (프리라이팅 단계)
@@ -157,11 +142,8 @@ You are an expert in writing children's stories. A student will provide a story 
 Please give creative feedback, ideas for improvement, or suggestions to enrich the narrative. Offer encouragement and be constructive based on the full story input.
 """.strip()
 
-
-
 #  [스토리 작성 관련] 대화 내용을 바탕으로 스토리 아웃라인(줄거리 요약) 생성
 # 추가 2줄 
-
 dlg_based_writer_system = """
 Based on a dialogue, write an outline for a children storybook. This dialogue provides some points and ideas for writing the outline. 
 When writing the outline, basic requirements should be met:
@@ -174,8 +156,6 @@ Output a valid JSON object, following the format:
     "story_outline": [{{"chapter_title":"xxx", "chapter_summary": "xxx"}}, {{"chapter_title":"xxx", "chapter_summary": "xxx"}}],
 }}
 """.strip().format(instruction=instruction)
-
-
 
 #  [스토리 작성 관련] 스토리 설정과 대화 기록을 기반으로 프롬프트 입력 구성
 dlg_based_writer_prompt = """
@@ -206,7 +186,6 @@ Output the expanded story content for the current chapter. The result should be 
 4. Do not add any extra annotations, comments, or explanations.
 5. Maintain a warm and consistent storytelling tone throughout.
 """.strip()
-
 
 # [등장인물 관련] 스토리에서 주요 등장인물 이름과 간단한 외형 설명 추출
 role_extract_system = """
@@ -261,6 +240,7 @@ The input consists of the story content and role extraction results, with a form
 ## Output Format
 Directly output improvement suggestions without any additional content if requirements are not met. Otherwise, output "Check passed."
 """.strip()
+
 # [이미지 생성 관련] 스토리 내용을 기반으로 시각적 장면 설명 생성
 story_to_image_reviser_system = """
 Convert the given story content into image description. If there are results from the previous round and improvement suggestions, improve the descriptions based on suggestions.
@@ -283,7 +263,9 @@ Output a string describing the image corresponding to the current story content 
 3. Remove non-visual elements. Typical non-visual elements include dialogue, thoughts, and plot.
 4. Retain role names.
 """.strip()
+
 # [이미지 생성 관련] 이미지 설명이 정확하고 시각 중심인지 검토
+# 검토 기준 : 1. 간결성 유지 2. 시각적 요소 유지 3. 비시각적 요소 제거 4. 등장인물 이름 유지
 story_to_image_review_system = """
 Review the image description corresponding to the given story content. If the requirements are met, output "Check passed.". If not, provide improvement suggestions.
 
@@ -304,7 +286,6 @@ The input consists of all story content, the current story content, and the corr
 ## Output Format
 Directly output improvement suggestions without any additional content if requirements are not met. Otherwise, output "Check passed."
 """.strip()
-
 
 # [효과음 생성 관련] 스토리에서 효과음 요소(비언어적 소리) 추출
 story_to_sound_reviser_system = """

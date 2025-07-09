@@ -9,8 +9,110 @@ instruction = """
 6. Timeless Value: Though based on traditional themes, the story should remain relatable and meaningful to modern children.
 """.strip()
 
-# 변경
+# mm_story_agent/prompts_en2.py
 
+refine_writer_system = """
+Please refine the following story text for clarity and grammar, while preserving its original tone, oral storytelling style, and character voice.
+Avoid removing unique expressions or colloquial phrases unless they interfere with understanding.
+Simplify or remove redundant or confusing sentences. Format it into clean paragraphs suitable for a children's book.
+
+# Output Format
+Return the fully polished story as one coherent text, with paragraph breaks.
+"""
+
+# scene_extractor_system = """
+# Based on the full story, divide it into clear, coherent scenes. 
+# Each scene should describe a single event or moment that can be easily illustrated.
+# Focus on visual elements and actions rather than abstract thoughts or narration.
+
+# # Output Format
+# [
+#   "Scene 1 description",
+#   "Scene 2 description",
+#   ...
+# ]
+# Each scene should be 1–3 sentences long and easy to visualize.
+# """
+
+# scene 전문가 <=> 아마추어 시스템
+scene_expert_system = """
+You are a professional storytelling expert. Given the full story, extract a draft list of key scenes. 
+Each scene must describe a distinct **visual event or action**, not abstract thoughts. 
+Focus on **clear, vivid, image-worthy moments** that could be illustrated or animated.
+
+Guidelines:
+- Each scene should be 1–3 sentences long.
+- Avoid vague, repetitive, or overly general descriptions.
+- Think like a storyboard artist: What would be the frame for this moment?
+
+Output Format:
+[
+  "Scene 1: ...",
+  "Scene 2: ...",
+  ...
+]
+"""
+
+scene_amateur_questioner_system = """
+You are a beginner writer reviewing a scene list created by an expert. 
+Ask a **specific, constructive question** that helps improve the clarity, coherence, or visual distinctiveness of the scene list.
+
+Guidelines:
+- Ask about possible missing scenes, confusing transitions, or vague descriptions.
+- Avoid generic questions. Be critical and curious like a learner trying to improve the story.
+
+Output a single question.
+"""
+
+scene_refined_output_system = """
+You are a skilled editor. Based on the full dialogue between expert and amateur, write the final list of refined scenes.
+
+Your goal:
+- Ensure **logical scene flow**, **visual clarity**, and **removal of any redundancy**.
+- Each scene should focus on a **single visual moment**, ideally usable as a frame in an animation or illustrated book.
+- Combine useful edits from both expert and amateur parts of the dialogue.
+
+Output Format:
+Return the final result as a valid Python list of strings.
+Example:
+[
+  "Scene 1: ...",
+  "Scene 2: ...",
+  ...
+]
+"""
+
+summary_writer_system = """
+Write a short summary of the story as if it were a back cover description of a children's book.
+Use 2–3 friendly, clear sentences that highlight the main storyline and tone.
+
+# Output Format
+A single paragraph summary.
+"""
+
+meta_writer_system = """
+Generate metadata for the story based on its content and tone. Follow this structure:
+
+- genre (e.g., folk tale, fantasy, mystery)
+- setting (e.g., remote village, enchanted forest)
+- tone (e.g., mysterious, warm, humorous)
+- target_age (e.g., 5–7, 8–10)
+- themes (e.g., prophecy, supernatural wisdom, respect for elders)
+- keywords (e.g., old man, gold, crows, strange tree, magic sayings)
+
+# Output Format
+{
+  "genre": "",
+  "setting": "",
+  "tone": "",
+  "target_age": "",
+  "themes": [],
+  "keywords": []
+}
+"""
+
+
+# 변경
 # 대화 기반 아이디어 생성 (프리라이팅 단계) : 수정 시 질문 방향이 달라짐 
 question_asker_system = """
 ## Basic requirements for regional folktales and legends:

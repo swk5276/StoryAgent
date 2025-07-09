@@ -3,6 +3,7 @@
 from abc import ABC
 
 # 에이전트 이름(key)과 해당 클래스 이름(value)을 매핑하는 딕셔너리
+# init_tool_instanace()가 해당 에이전트를 찾을 수 있도록
 register_map = {
     'qwen': 'QwenAgent',
     'qa_outline_story_writer': 'QAOutlineStoryWriter',
@@ -13,6 +14,11 @@ register_map = {
     'slideshow_video_compose': 'SlideshowVideoComposeAgent',
     'freesound_sfx_retrieval': 'FreesoundSfxAgent',
     'freesound_music_retrieval': 'FreesoundMusicAgent',
+
+    'refine_writer': 'RefineWriterAgent',
+    'scene_splitter': 'SceneExtractorAgent',
+    'summary_writer': 'SummaryWriterAgent',
+    'meta_writer': 'MetaWriterAgent',
 }    
 
 # 주어진 키에 따라 해당 에이전트 클래스를 현재 디렉토리로부터 동적으로 import

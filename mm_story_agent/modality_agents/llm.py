@@ -39,7 +39,7 @@ class QwenAgent(object):
     # 사용 모델 : qwen2-72b-instruct  /  lgai/exaone-3-5-32b-instruct  /  
     def call(self,
              prompt: str,  # LLM에 입력으로 줄 프롬프트 문자열
-             model_name: str = "lgai/exaone-3-5-32b-instruct",  # 사용할 모델 이름
+             model_name: str = "qwen2-72b-instruct",  # 사용할 모델 이름
              # model_name 예시: "lgai/exaone-3-5-32b-instruct", "gpt-4o"
              top_p: float = 0.95,  # 확률 누적 기반 샘플링 (다양성 조절)
              temperature: float = 1.0,  # 랜덤성 조절 (창의성 정도)
@@ -64,12 +64,12 @@ class QwenAgent(object):
         # OpenAI 호환 클라이언트 생성 (현재는 Dashscope 방식 사용)
         client = OpenAI(
             # 알리바바 DashScope API 키 및 엔드포인트
-            # api_key="sk-c6abdec50898482e89a9d5c94741efe1",
-            # base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+            api_key="sk-c6abdec50898482e89a9d5c94741efe1",
+            base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
             
             # ⚠️ 아래는 주석 처리된 Together.ai용 설정
-            api_key="adb805e28e2ac4326e301c3d24ee8870e427e81006645089c49fdf23ab52216b",
-            base_url="https://api.together.xyz/v1"
+            # api_key="adb805e28e2ac4326e301c3d24ee8870e427e81006645089c49fdf23ab52216b",
+            # base_url="https://api.together.xyz/v1"
         )
 
         # 최대 max_try 횟수만큼 재시도 루프
@@ -113,3 +113,4 @@ class QwenAgent(object):
 
         # 최종 응답 및 성공 여부 반환
         return response, success
+

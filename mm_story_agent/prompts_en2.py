@@ -14,13 +14,23 @@ instruction = """
 # 1. 정제 에이전트 프롬프트
 # 이 지침은 이야기의 구어체와 분위기를 살리면서 문법과 표현을 매끄럽게 다듬고, 중복되거나 혼란스러운 문장을 정리하는 지침
 refine_writer_system = """
-Please refine the following story text for clarity and grammar, while preserving its original tone, oral storytelling style, and character voice.
-Avoid removing unique expressions or colloquial phrases unless they interfere with understanding.
-Simplify or remove redundant or confusing sentences. Format it into clean paragraphs suitable for a children's book.
+다음 이야기 텍스트를 어린이용 동화 형식으로 다듬어 주세요.
 
-# Output Format
-Return the fully polished story as one coherent text, with paragraph breaks.
+[요구사항]
+- 이야기의 말투, 구어체, 전래 동화 특유의 입말 스타일은 유지해 주세요.
+- 고유명사(사람, 동물, 지명 등)는 변경하지 마세요. 원문에 나오는 이름, 별명, 호칭 등은 그대로 유지해야 합니다.
+  - 예: 캐릭터 이름(예: 흥부, 놀부, 청개구리 등), 생물 이름, 지명 등
+- 이름이 표기 오류로 바뀌지 않도록 주의하며, 시스템이 철자나 발음을 임의로 수정하지 않도록 해주세요.
+- 등장인물의 역할이 혼동되지 않도록 불분명한 표현은 명확하게 바꿔주세요.
+- 불필요한 반복, 모호한 문장은 자연스럽고 간결하게 정리하되 이야기 흐름은 바꾸지 마세요.
+- 문단 나눔을 포함해, 어린이가 읽기 쉬운 형식으로 정리해 주세요.
+
+[출력 형식]
+- 하나의 완성된 이야기 텍스트로 출력해 주세요. 문단 구분을 포함합니다.
+- 리스트, JSON 등 구조화된 형태가 아닌 순수 텍스트로 출력합니다.
 """
+
+
 
 # 1. 전문가 시스템 (장면 추출 및 시각적 묘사 강화용)
 scene_expert_system = """
@@ -94,24 +104,24 @@ Return a valid Python list of strings:
 
 # 4. 이야기 요약 시스템 (이미지 대본 내러티브용)
 summary_writer_system = """
-You are writing a short 2–3 sentence summary to be used as a **voice-over script** or **caption** for an illustrated children's story video.
+You are generating one-sentence voice-over narration lines for each scene in a children's illustrated story video.
 
 Guidelines:
-- Focus on **the emotional journey** of the main character(s).
-- Highlight the story’s **central conflict**, **turning point**, and **message** in a warm, child-friendly tone.
-- Keep the language **visual, simple, and engaging** — avoid abstract or complex phrases.
-- Break the summary into short, complete sentences for each scene.
+- Write **one complete sentence per scene** that captures the key emotional and visual moment.
+- Keep the language warm, simple, and vivid.
+- Do **not** add scene numbers, labels, or extra commentary—just the narration sentence itself.
 
 Output Format:
-Return a **valid JSON list of strings**, where each string is a scene-level narration sentence.
-**Do NOT wrap the entire list in quotes**.
+Return a **valid JSON array of strings** (no outer quotes, no extra notes).
 
-Example:
+Example (correct format):
 [
-  "Scene 1: In the pond, young Chonggye refuses to listen to his mother and swims off on his own.",
-  "Scene 2: After a frightening adventure, he learns why her guidance matters and returns with a new understanding."
+  "Young Chonggye swims away from his worried mother across the quiet pond.",
+  "Lost in the dark forest, he realizes how much he misses her comforting voice."
 ]
 """
+
+
 
 
 # 5. 이야기 메타데이터 시스템 (이미지 생성용 프롬프트 보조 정보 최적화)

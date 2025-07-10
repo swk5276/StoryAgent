@@ -7,6 +7,7 @@ from pathlib import Path
 # 시스템 관련 기능을 위한 모듈
 import sys
 # PyTorch의 멀티프로세싱 기능을 사용하기 위한 모듈
+from networkx import full_rary_tree
 import torch.multiprocessing as mp
 # 멀티프로세싱 방식 설정 (spawn 방식으로 강제 설정)
 mp.set_start_method("spawn", force=True)
@@ -132,14 +133,21 @@ class MMStoryAgent:
         story_dir = Path(config["story_dir"])
         story_dir.mkdir(parents=True, exist_ok=True)
 
-        # 스토리 원문 입력
-        full_context = config["story_writer"]["params"]["full_context"]
+        # Whisper 결과 입력 받기
+        raw_text = config["story_writer"]["params"]["full_context"]
 
-        # 1. 텍스트 정제
+        # 1. Whisper 결과 원본 저장
+        with open(story_dir / "full_text_raw.txt", "w", encoding="utf-8") as f:
+            f.write(raw_text)
+
+        # 2. 정제 처리
         refine_writer = init_tool_instance(config["refine_writer"])
-        full_text = refine_writer.call({"raw_text": full_context})
+        full_text = refine_writer.call({"raw_text": raw_text})
+
+        # 3. 정제된 텍스트 저장
         with open(story_dir / "full_text.txt", "w", encoding="utf-8") as f:
             f.write(full_text)
+
 
         # 2. 신(scene) 분리
         scene_extractor = init_tool_instance(config["scene_extractor"])

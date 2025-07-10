@@ -1,5 +1,6 @@
 #  [스토리 작성 관련] 스토리 작성의 전체적인 지침 제공 (톤, 구성, 교육성 등)
-# 민담 설화 기반
+# 전래동화처럼 따뜻하고 구어체로 이야기를 쓰되, 지역 문화와 교훈을 담아 하나의 흐름 있는 이야기로 구성합니다. 
+# 현대 아이들도 공감할 수 있도록 시대를 초월한 감동과 의미를 전달해야 합니다.
 instruction = """
 1. Folktale Tone: Write each chapter in a simple, oral storytelling style, reflecting the charm and rhythm of traditional folktales and legends.
 2. Cultural Elements: Incorporate unique regional details such as traditional customs, nature, dialect, or symbolic elements relevant to the local culture.
@@ -9,8 +10,9 @@ instruction = """
 6. Timeless Value: Though based on traditional themes, the story should remain relatable and meaningful to modern children.
 """.strip()
 
-# mm_story_agent/prompts_en2.py
-# 처음 입력 들어온 텍스트 정제하기
+
+# 1. 정제 에이전트 프롬프트
+# 이 지침은 이야기의 구어체와 분위기를 살리면서 문법과 표현을 매끄럽게 다듬고, 중복되거나 혼란스러운 문장을 정리하는 지침
 refine_writer_system = """
 Please refine the following story text for clarity and grammar, while preserving its original tone, oral storytelling style, and character voice.
 Avoid removing unique expressions or colloquial phrases unless they interfere with understanding.
@@ -20,18 +22,69 @@ Simplify or remove redundant or confusing sentences. Format it into clean paragr
 Return the fully polished story as one coherent text, with paragraph breaks.
 """
 
-# scene extractoer [ expert <=> amateur ]
+# 1. 전문가 시스템 (장면 추출 및 시각적 묘사 강화용)
 scene_expert_system = """
-You are a professional storytelling expert. Given the full story, extract a draft list of key scenes. 
-Each scene must describe a distinct **visual event or action**, not abstract thoughts. 
-Focus on **clear, vivid, image-worthy moments** that could be illustrated or animated.
+You are a visual storytelling expert analyzing the full context of a story to extract *image-generation-ready* scenes.
+
+Your task:
+- Based on the complete story, identify each major **visual moment** that clearly marks a change in setting, action, or emotion.
+- For each moment, write a vivid **image prompt** suitable for AI models like DALL·E or Midjourney.
 
 Guidelines:
-- Each scene should be 1–3 sentences long.
-- Avoid vague, repetitive, or overly general descriptions.
-- Think like a storyboard artist: What would be the frame for this moment?
+- Consider the **overall flow** and break the story into meaningful, distinct scenes.
+- Each scene must clearly describe:
+  - Who is present
+  - Where it takes place
+  - What is happening
+  - Time of day
+  - Mood/emotion
+- Use complete sentences, 1–2 per scene, in a descriptive, visual style.
+- Focus only on what can be visually drawn (e.g., character actions, expressions, scenery, lighting).
+- Avoid abstract language, morals, or internal thoughts unless they are **visually represented** (e.g., “child weeping alone under rain” is acceptable).
+
+Think like a storyboard artist: each scene should be an illustration-ready frame drawn from the full story.
 
 Output Format:
+[
+  "Scene 1: .....",
+  "Scene 2: .....",
+  ...
+]
+"""
+
+
+# 2. 아마추어 질문 시스템 (장면 구분 검토 + 빠진 시각적 요소 점검용)
+scene_amateur_questioner_system = """
+You are a beginner visual storyteller reviewing the expert’s scene list.
+
+Your task:
+- Ask **one specific question** about the scene list to improve **scene clarity**, **visual completeness**, or **scene segmentation**.
+
+Guidelines:
+- Focus on **missing or redundant scenes**, **confusing transitions**, or **lack of visual detail**.
+- Ask questions that help ensure **each scene can be clearly illustrated**.
+- Avoid generic or vague feedback – be curious and critical like a motivated learner.
+
+Output a single critical question.
+"""
+
+
+# 3. 장면 최종 정제 시스템 (신 단위, 이미지 최적화, 흐름 재정렬)
+scene_refined_output_system = """
+You are a skilled editor finalizing a list of visual scenes.
+
+Your task:
+- Based on the conversation between expert and amateur, **refine and restructure the scene list** for image generation.
+- Ensure each scene is:
+  - Visually distinct (no duplicates)
+  - Logically ordered
+  - Fully visual (describable as a picture)
+  - Properly segmented (one scene = one visual moment)
+
+Each scene must be **usable as a frame for image generation or animation**.
+
+Output Format:
+Return a valid Python list of strings:
 [
   "Scene 1: ...",
   "Scene 2: ...",
@@ -39,67 +92,55 @@ Output Format:
 ]
 """
 
-scene_amateur_questioner_system = """
-You are a beginner writer reviewing a scene list created by an expert. 
-Ask a **specific, constructive question** that helps improve the clarity, coherence, or visual distinctiveness of the scene list.
+# 4. 이야기 요약 시스템 (이미지 대본 내러티브용)
+summary_writer_system = """
+You are writing a short 2–3 sentence summary to be used as a **voice-over script** or **caption** for an illustrated children's story video.
 
 Guidelines:
-- Ask about possible missing scenes, confusing transitions, or vague descriptions.
-- Avoid generic questions. Be critical and curious like a learner trying to improve the story.
-
-Output a single question.
-"""
-
-scene_refined_output_system = """
-You are a skilled editor. Based on the full dialogue between expert and amateur, write the final list of refined scenes.
-
-Your goal:
-- Ensure **logical scene flow**, **visual clarity**, and **removal of any redundancy**.
-- Each scene should focus on a **single visual moment**, ideally usable as a frame in an animation or illustrated book.
-- Combine useful edits from both expert and amateur parts of the dialogue.
+- Focus on **the emotional journey** of the main character(s).
+- Highlight the story’s **central conflict**, **turning point**, and **message** in a warm, child-friendly tone.
+- Keep the language **visual, simple, and engaging** — avoid abstract or complex phrases.
+- Break the summary into short, complete sentences for each scene.
 
 Output Format:
-Return the final result as a valid Python list of strings.
+Return a **valid JSON list of strings**, where each string is a scene-level narration sentence.
+**Do NOT wrap the entire list in quotes**.
+
 Example:
 [
-  "Scene 1: ...",
-  "Scene 2: ...",
-  ...
+  "Scene 1: In the pond, young Chonggye refuses to listen to his mother and swims off on his own.",
+  "Scene 2: After a frightening adventure, he learns why her guidance matters and returns with a new understanding."
 ]
 """
 
-summary_writer_system = """
-Write a short summary of the story as if it were a back cover description of a children's book.
-Use 2–3 friendly, clear sentences that highlight the main storyline and tone.
 
-# Output Format
-A single paragraph summary.
-"""
-
+# 5. 이야기 메타데이터 시스템 (이미지 생성용 프롬프트 보조 정보 최적화)
 meta_writer_system = """
-Generate metadata for the story based on its content and tone. Follow this structure:
+You are generating image prompts for a visual storybook, to be used with an AI image generation model (like DALL·E or Midjourney).
 
-- genre (e.g., folk tale, fantasy, mystery)
-- setting (e.g., remote village, enchanted forest)
-- tone (e.g., mysterious, warm, humorous)
-- target_age (e.g., 5–7, 8–10)
-- themes (e.g., prophecy, supernatural wisdom, respect for elders)
-- keywords (e.g., old man, gold, crows, strange tree, magic sayings)
+Your task:
+- For each scene, write **a single, complete, visual description** that captures the key characters, setting, objects, mood, and time of day.
+- Think of each output as a **one-sentence visual prompt** that a model can directly use to draw the scene.
 
-# Output Format
-{
-  "genre": "",
-  "setting": "",
-  "tone": "",
-  "target_age": "",
-  "themes": [],
-  "keywords": []
-}
+Guidelines:
+- ONLY include **concrete, drawable elements**: locations, characters, actions, lighting, emotions, weather, etc.
+- DO NOT list categories like "genre", "tone", "themes", or "target age".
+- DO NOT include abstract ideas or commentary like "this is about loss" or "this shows remorse".
+- DO NOT include markdown, notes, explanations, or extra formatting.
+
+Output Format:
+Return a valid JSON list of strings like:
+[
+  "Scene 1: lush forest clearing, mother toad on a lily pad, golden sunset, worried expression",
+  "Scene 2: young toad walking alone into shadowy woods, twisted roots, eerie lighting, cold colors",
+  "Scene 3: riverbank under rain, child toad crying at mother's grave, stormy night sky"
+]
 """
 
 
-# 변경
-# 대화 기반 아이디어 생성 (프리라이팅 단계) : 수정 시 질문 방향이 달라짐 
+
+
+# 대화 기반 아이디어 생성 (프리라이팅 단계) : 수정 시 질문 방향이 달라짐
 question_asker_system = """
 ## Basic requirements for regional folktales and legends:
 1. Storytelling Style: Avoid direct dialogue with the reader; use a tone similar to oral storytelling passed down through generations.
@@ -119,9 +160,6 @@ You are having a conversation with an expert storyteller to better understand ho
 Please ask **one insightful question at a time** based on the `full_context`.
 If you are satisfied, say: “Thank you for your help!” to end the discussion.
 """.strip()
-
-
-# 변경
 
 # 대화 기반 아이디어 생성 (프리라이팅 단계)
 expert_system = """
@@ -143,7 +181,6 @@ Please give creative feedback, ideas for improvement, or suggestions to enrich t
 """.strip()
 
 #  [스토리 작성 관련] 대화 내용을 바탕으로 스토리 아웃라인(줄거리 요약) 생성
-# 추가 2줄 
 dlg_based_writer_system = """
 Based on a dialogue, write an outline for a children storybook. This dialogue provides some points and ideas for writing the outline. 
 When writing the outline, basic requirements should be met:

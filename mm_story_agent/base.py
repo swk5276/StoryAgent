@@ -1,4 +1,4 @@
-################## 에이전트 등록 및 초기화 담당
+# 에이전트 등록 및 초기화 담당
 # ABC 클래스는 향후 확장성을 위한 추상 클래스 기반 구조를 지원하기 위해 임포트됨
 from abc import ABC
 
@@ -14,7 +14,6 @@ register_map = {
     'slideshow_video_compose': 'SlideshowVideoComposeAgent',
     'freesound_sfx_retrieval': 'FreesoundSfxAgent',
     'freesound_music_retrieval': 'FreesoundMusicAgent',
-
     'refine_writer': 'RefineWriterAgent',
     'scene_splitter': 'SceneExtractorAgent',
     'summary_writer': 'SummaryWriterAgent',

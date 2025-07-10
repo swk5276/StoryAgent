@@ -12,8 +12,7 @@ from diffusers import AudioLDM2Pipeline
 from mm_story_agent.prompts_en import story_to_sound_reviser_system, story_to_sound_review_system
 from mm_story_agent.base import register_tool, init_tool_instance
 
-
-# ✅ 실제 오디오 생성기를 구현한 클래스
+# 오디오 생성기를 구현 클래스
 class AudioLDM2Synthesizer:
 
     def __init__(self,
@@ -51,8 +50,7 @@ class AudioLDM2Synthesizer:
         audios = audios[::n_candidate_per_text]
         return audios
 
-
-# ✅ 에이전트 등록: "audioldm2_t2a" (text-to-audio)
+# 사운드 에이전트 등록: "audioldm2_t2a" (text-to-audio)
 @register_tool("audioldm2_t2a")
 class AudioLDM2Agent:
 

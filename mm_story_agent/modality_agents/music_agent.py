@@ -17,10 +17,8 @@ from mm_story_agent.prompts_en import story_to_music_reviser_system, story_to_mu
 # 도구 등록과 초기화 유틸리티
 from mm_story_agent.base import register_tool, init_tool_instance
 
-
 # Hugging Face의 MusicGen을 활용한 실제 음악 생성기 클래스
 class MusicGenSynthesizer:
-
     def __init__(self,
                  model_name: str = 'facebook/musicgen-medium',  # 기본 모델
                  device: str = 'cuda',                          # 디바이스 설정 (GPU 권장)
@@ -65,7 +63,7 @@ class MusicGenSynthesizer:
         sf.write(save_path, wav.numpy(), self.sample_rate)
 
 
-# ✅ 에이전트 등록: "musicgen_t2m"이라는 이름으로 외부에서 호출 가능
+# 음악 에이전트 등록: "musicgen_t2m"이라는 이름으로 외부에서 호출 가능
 @register_tool("musicgen_t2m")
 class MusicGenAgent:
 
@@ -73,7 +71,7 @@ class MusicGenAgent:
     def __init__(self, cfg) -> None:
         self.cfg = cfg  # 설정 저장
 
-    # 📌 이야기 페이지들을 기반으로 음악 설명 프롬프트를 생성하는 함수
+    # 이야기 페이지들을 기반으로 음악 설명 프롬프트를 생성하는 함수
     def generate_music_prompt_from_story(self, pages: List):
         # 음악 설명을 생성하는 LLM 인스턴스 초기화 (reviser 역할)
         music_prompt_reviser = init_tool_instance({

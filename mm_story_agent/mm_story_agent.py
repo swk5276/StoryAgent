@@ -23,7 +23,7 @@ class MMStoryAgent:
     # 클래스 생성자
     def __init__(self) -> None:
         # 사용할 모달리티 목록 지정 ("speech", "music")
-        self.modalities = ["speech", "music"]
+        self.modalities = ["image","speech", "music"]
 
     # 모달리티 에이전트를 별도의 프로세스에서 호출하는 함수
     def call_modality_agent(self, modality, agent, params, return_dict):
@@ -33,96 +33,71 @@ class MMStoryAgent:
         return_dict[modality] = result
 
     # 스토리 작성 함수
-    def write_story(self, config):
-        # yaml 설정에서 스토리 작성 관련 부분 추출
-        cfg = config["story_writer"]
-        # 스토리 작성용 에이전트 초기화
-        story_writer = init_tool_instance(cfg)
-        # 스토리 작성 실행 => 여러 페이지가 생성됨
-        pages = story_writer.call(cfg["params"])
-        # 생성된 페이지 반환
-        return pages
+    # def write_story(self, config):
+    #     # yaml 설정에서 스토리 작성 관련 부분 추출
+    #     cfg = config["story_writer"]
+    #     # 스토리 작성용 에이전트 초기화
+    #     story_writer = init_tool_instance(cfg)
+    #     # 스토리 작성 실행 => 여러 페이지가 생성됨
+    #     pages = story_writer.call(cfg["params"])
+    #     # 생성된 페이지 반환
+    #     return pages
     
     # 음성/음악 등 모달리티 자산을 생성하는 함수
-    def generate_modality_assets(self, config, pages):
-        # 스토리 데이터 구조 초기화 (각 페이지는 story만 담고 있음)
-        script_data = {"pages": [{"story": page} for page in pages]}
-        # 저장할 디렉토리 경로 설정
+    def generate_modality_assets(self, config, scene_summaries, scene_metadatas):
         story_dir = Path(config["story_dir"])
-
-        # 모달리티별 저장 폴더 생성 (존재하지 않으면 생성)
         for sub_dir in self.modalities:
             (story_dir / sub_dir).mkdir(exist_ok=True, parents=True)
 
-        # 에이전트 및 파라미터 저장용 딕셔너리 초기화
         agents = {}
         params = {}
-        for modality in self.modalities:
-            # 해당 모달리티에 사용할 에이전트 초기화
-            agents[modality] = init_tool_instance(config[modality + "_generation"])
-            # 설정에서 파라미터 복사 후 pages 및 save_path 추가
-            params[modality] = config[modality + "_generation"]["params"].copy()
-            params[modality].update({
-                "pages": pages,
-                "save_path": story_dir / modality
-            })
-
-        # 멀티프로세싱을 위한 프로세스 리스트 및 결과 저장용 딕셔너리 초기화
         processes = []
         return_dict = mp.Manager().dict()
 
-        # 각 모달리티에 대해 별도 프로세스 실행
         for modality in self.modalities:
+            agents[modality] = init_tool_instance(config[modality + "_generation"])
+            
+            # 모달리티별로 페이지 소스 다르게 선택
+            if modality == "image":
+                page_data = scene_metadatas
+            else:
+                page_data = scene_summaries
+
+            params[modality] = config[modality + "_generation"]["params"].copy()
+
+            params[modality].update({
+                "pages": page_data,
+                "save_path": story_dir / modality
+            })
+
             p = mp.Process(
-                target=self.call_modality_agent,  # 실행할 함수
-                args=(  # 함수에 전달할 인자
-                    modality,
-                    agents[modality],
-                    params[modality],
-                    return_dict)
-                )
-            processes.append(p)  # 프로세스 리스트에 추가
-            p.start()  # 프로세스 실행
-        
-        # 모든 프로세스가 종료될 때까지 대기
+                target=self.call_modality_agent,
+                args=(modality, agents[modality], params[modality], return_dict)
+            )
+            processes.append(p)
+            p.start()
+
         for p in processes:
             p.join()
 
-        # 결과 처리
-        for modality, result in return_dict.items():
-            try:
-                # 이미지 모달리티가 있는 경우 예외 처리용 주석 (현재는 사용 안 함)
-                # if modality == "image":
-                #     images = result["generation_results"]
-                #     for idx in range(len(pages)):
-                #         script_data["pages"][idx]["image_prompt"] = result["prompts"][idx]
-                
-                # 사운드 모달리티의 경우 각 페이지에 sound_prompt 추가
-                if modality == "sound":
-                    for idx in range(len(pages)):
-                        script_data["pages"][idx]["sound_prompt"] = result["prompts"][idx]
-                # 음악 모달리티의 경우 전체 prompt만 저장
-                elif modality == "music":
-                    script_data["music_prompt"] = result["prompt"]
-            except Exception as e:
-                # 예외 발생 시 에러 메시지 출력
-                print(f"Error occurred during generation: {e}")
-        
-        # 최종 script_data를 JSON 파일로 저장
-        with open(story_dir / "script_data.json", "w") as writer:
-            json.dump(script_data, writer, ensure_ascii=False, indent=4)
-        
-        # 반환 없음
-        return None
+        print("모달리티별 자산 생성 완료.")
+
+    
     # 비디오 합성을 위한 함수
-    def compose_storytelling_video(self, config, pages):
+    def compose_storytelling_video(self, config, scene_summaries, scene_metadatas, use_metadata_for_video=False):
         # 비디오 합성용 에이전트 초기화
         video_compose_agent = init_tool_instance(config["video_compose"])
+
+        # 페이지 데이터 선택
+        pages = scene_metadatas if use_metadata_for_video else scene_summaries
+
         # 파라미터 복사 후 페이지 정보 추가
         params = config["video_compose"]["params"].copy()
         params["pages"] = pages
+
         # 비디오 합성 실행
         video_compose_agent.call(params)
+
 
     # 전체 파이프라인 실행 함수 
     def call(self, config):
@@ -178,11 +153,10 @@ class MMStoryAgent:
             scene_metadatas.append(metadata)
 
         # 저장
-        with open(story_dir / "scene_summaries.json", "w", encoding="utf-8") as f:
-            json.dump(scene_summaries, f, indent=4, ensure_ascii=False)
-
-        with open(story_dir / "scene_metadatas.json", "w", encoding="utf-8") as f:
-            json.dump(scene_metadatas, f, indent=4, ensure_ascii=False)
+        with open(story_dir / "scene_summaries.json", "r", encoding="utf-8") as f:
+            scene_summaries = json.load(f)
+        with open(story_dir / "scene_metadatas.json", "r", encoding="utf-8") as f:
+            scene_metadatas = json.load(f)
 
         print("✅ Text-to-Scene pipeline completed.")
 
@@ -190,8 +164,13 @@ class MMStoryAgent:
         # 4. 모달리티 자산 생성
         print("🎵 Generating modality assets...")
         pages = [s for s in scene_summaries]  # 요약 결과를 각 페이지 story로 활용
-        self.generate_modality_assets(config, pages)
+        self.generate_modality_assets(config, scene_summaries, scene_metadatas)
         # 5. 비디오 합성
         print("🎬 Composing storytelling video...")
-        self.compose_storytelling_video(config, pages)
+        self.compose_storytelling_video(
+            config,
+            scene_summaries=scene_summaries,
+            scene_metadatas=scene_metadatas,
+            use_metadata_for_video=False  # ← 필요 시 True로 변경
+        )
 

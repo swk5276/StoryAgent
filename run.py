@@ -18,7 +18,7 @@ from mm_story_agent.prompts_en2 import (
 
 # python run.py -c configs/mm_story_agent.yaml -a data/audio/my_voice.wav
 
-# python run.py -c configs/mm_story_agent.yaml -a data/a.mp3
+# python run.py -c configs/mm_story_agent.yaml -a data/b.mp3
 
 
 def inject_whisper_text_to_config(config, whisper_text: str):

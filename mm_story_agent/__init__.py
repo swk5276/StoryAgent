@@ -11,6 +11,7 @@ _import_structure = {
         'CosyVoiceAgent',
         'StoryDiffusionAgent',
         'QwenAgent',
+        'ExaoneAgent',
         'FreesoundSfxAgent',
         'FreesoundMusicAgent'
     ],

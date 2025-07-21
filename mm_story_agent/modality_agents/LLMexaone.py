@@ -1,7 +1,15 @@
 # 타입 힌트와 콜백 함수 정의를 위한 타입 모듈
 from typing import Dict, Callable
 import os
+from dotenv import load_dotenv
+import openai
 
+# .env 파일 로드
+load_dotenv()
+# 환경변수에서 API 키 가져오기
+api_key = os.getenv("OPENAI_API_KEY")
+# openai 패키지에 직접 할당하는 경우
+openai.api_key = api_key
 # (예비용) DashScope API 모듈 (현재는 사용되지 않음)
 from dashscope import Generation
 
@@ -72,7 +80,7 @@ class ExaoneAgent(object):
             # api_key="adb805e28e2ac4326e301c3d24ee8870e427e81006645089c49fdf23ab52216b",
             # base_url="https://api.together.xyz/v1"
             # gpt 4-o
-            api_key="",
+            api_key=openai.api_key,
             base_url="https://api.openai.com/v1"  # OpenAI의 기본 엔드포인트
 
         )

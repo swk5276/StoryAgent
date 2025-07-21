@@ -49,6 +49,7 @@ def json_parse_outline(outline):
     return True  # 모든 조건 통과 시 True 반환
 
 # 질문 생성 LLM 과 전문가 역할 LLM을 통해 Q & A 대화 생성 
+# 기존 에이전트 부분
 @register_tool("qa_outline_story_writer")
 class QAOutlineStoryWriter:
 
@@ -225,13 +226,13 @@ class QAOutlineStoryWriter:
 class RefineWriterAgent:
     # config 설정 정보 받아와서 초기화 및 LLM.py의 모델을 가져와 초기화
     def __init__(self, cfg):
-        self.llm = ExaoneAgent(cfg)
+        self.llm = ExaoneAgent(cfg) 
 
     # 입력으로 들어오는 딕셔너리 받고 "raw_text"라는 키를 통해 정제할 원문 받기
     def call(self, params):
         print("[RefineWriterAgent] 전체 텍스트 정제 중")  
         prompt = params["raw_text"]
-        response, _ = self.llm.call(prompt)
+        response, _ = self.llm.call(prompt) # Exaone 에이전트 초기화 후 call()로 prompt 전달
         print("[RefineWriterAgent] 전체 텍스트 정제 완료.")  
         return response
 

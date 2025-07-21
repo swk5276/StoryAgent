@@ -16,7 +16,8 @@ from ..prompts_en2 import question_asker_system, expert_system, \
     dlg_based_writer_system, dlg_based_writer_prompt, chapter_writer_system
 
 from mm_story_agent.base import register_tool
-from mm_story_agent.modality_agents.llm import QwenAgent  # QwenAgent 불러오기
+from mm_story_agent.modality_agents.LLMqwen import QwenAgent  # QwenAgent 불러오기
+from mm_story_agent.modality_agents.LLMexaone import ExaoneAgent  # ExaoneAgent 불러오기
 
 #전체 이야기 생성 파이프 라인의 중심 클래스 MMStoryAgent를 정의하고 실행하는 것
 from mm_story_agent.prompts_en2 import (
@@ -224,7 +225,7 @@ class QAOutlineStoryWriter:
 class RefineWriterAgent:
     # config 설정 정보 받아와서 초기화 및 LLM.py의 모델을 가져와 초기화
     def __init__(self, cfg):
-        self.llm = QwenAgent(cfg)
+        self.llm = ExaoneAgent(cfg)
 
     # 입력으로 들어오는 딕셔너리 받고 "raw_text"라는 키를 통해 정제할 원문 받기
     def call(self, params):

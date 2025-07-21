@@ -6,6 +6,7 @@ from abc import ABC
 # init_tool_instanace()가 해당 에이전트를 찾을 수 있도록
 register_map = {
     'qwen': 'QwenAgent',
+    'exaone': 'ExaoneAgent',
     'qa_outline_story_writer': 'QAOutlineStoryWriter',
     'musicgen_t2m': 'MusicGenAgent',
     'story_diffusion_t2i': 'StoryDiffusionAgent',

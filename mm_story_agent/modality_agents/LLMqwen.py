@@ -67,7 +67,7 @@ class QwenAgent(object):
             api_key="sk-c6abdec50898482e89a9d5c94741efe1",
             base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
             
-            # ⚠️ 아래는 주석 처리된 Together.ai용 설정
+            # 아래는 주석 처리된 Together.ai용 설정
             # api_key="adb805e28e2ac4326e301c3d24ee8870e427e81006645089c49fdf23ab52216b",
             # base_url="https://api.together.xyz/v1"
         )

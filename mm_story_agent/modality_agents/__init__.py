@@ -19,7 +19,8 @@ _import_structure = {
         'StoryDiffusionAgent'
     ],
     'llm': [
-        'QwenAgent'
+        'QwenAgent',
+        'ExaoneAgent'
     ],
     "freesound_agent": [
         "FreesoundSfxAgent",

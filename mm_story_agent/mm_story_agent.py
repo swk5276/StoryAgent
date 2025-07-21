@@ -118,17 +118,23 @@ class MMStoryAgent:
         # 2. 정제 처리
         refine_writer = init_tool_instance(config["refine_writer"])
         full_text = refine_writer.call({"raw_text": raw_text})
-
-        # 3. 정제된 텍스트 저장
+        # 2. 정제된 텍스트 저장
         with open(story_dir / "full_text.txt", "w", encoding="utf-8") as f:
             f.write(full_text)
 
-
-        # 2. 신(scene) 분리
+        # 3. 신(scene) 정리
         scene_extractor = init_tool_instance(config["scene_extractor"])
         scene_list = scene_extractor.call({"full_text": full_text})
         with open(story_dir / "scene_text.json", "w", encoding="utf-8") as f:
             json.dump({"scenes": scene_list}, f, indent=4, ensure_ascii=False)
+
+        # 
+        # # 4. 신(scene) 분리
+        # scene_extractor = init_tool_instance(config["scene_extractor"])
+        # scene_list = scene_extractor.call({"full_text": full_text})
+
+        # with open(story_dir / "scene_text.json", "w", encoding="utf-8") as f:
+        #     json.dump({"scenes": scene_list}, f, indent=4, ensure_ascii=False)
 
         # 3. Scene별 요약 및 메타데이터
         summary_writer = init_tool_instance(config["summary_writer"])
@@ -158,7 +164,7 @@ class MMStoryAgent:
         with open(story_dir / "scene_metadatas.json", "r", encoding="utf-8") as f:
             scene_metadatas = json.load(f)
 
-        print("✅ Text-to-Scene pipeline completed.")
+        print("Text-to-Scene pipeline completed.")
 
         return
         # 4. 모달리티 자산 생성

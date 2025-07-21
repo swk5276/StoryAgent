@@ -22,7 +22,7 @@ scene_extractor:
   cfg:
     llm: qwen             # 사용할 LLM 이름 (예: 'qwen', 'gpt-4', 'llama' 등)
     temperature: 0.5      # 전체 대화 생성 온도
-    max_conv_turns: 3     # 아마추어 ↔ 전문가 대화 반복 횟수
+    # max_conv_turns: 3     # 아마추어 ↔ 전문가 대화 반복 횟수
 
 
 summary_writer:

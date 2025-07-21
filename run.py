@@ -15,7 +15,7 @@ from mm_story_agent.prompts_en2 import (
 )
 
 def inject_whisper_text_to_config(config, whisper_text: str):
-    # full_context 필드가 story_writer.params 아래에 있는지 확인하고 삽입
+    # full_context 필드가 story_writer와 params 아래에 있는지 확인하고 없으면 만들기
     if "story_writer" not in config:
         config["story_writer"] = {}
     if "params" not in config["story_writer"]:
@@ -23,16 +23,17 @@ def inject_whisper_text_to_config(config, whisper_text: str):
     config["story_writer"]["params"]["full_context"] = whisper_text
     print("[INFO] Whisper 텍스트가 story_writer.params.full_context에 삽입되었습니다.")
 
-# 실행 코드
-# python run.py -c configs/mm_story_agent.yaml -a data/b.mp3
+#################### 코드 실행 명령어 #####################
+# python run.py -c configs/mm_story_agent.yaml -a data/이상윤.mp3
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    # 인자들을 통해 YAML 설정 파일 경로와 음성파일 경로 받기 (실행 명령어를 통해)
     parser.add_argument("--config", "-c", type=str, required=True, help="YAML 설정 파일 경로")
     parser.add_argument("--audio", "-a", type=str, required=False, help="Whisper용 음성 파일 경로")
     args = parser.parse_args()
 
-    # 설정 로딩
+    # config 변수에 YAML 설정 파일 내용 파싱하여 저장
     with open(args.config, encoding='utf-8') as reader:
         config = yaml.load(reader, Loader=yaml.FullLoader)
 
@@ -44,7 +45,6 @@ if __name__ == "__main__":
         
         inject_whisper_text_to_config(config, whisper_text) # 변환된 텍스트를 config 내 스토리 관련 항목에 삽입합니다.
 
-        # 옵션: 전체 텍스트를 파일로 저장
         story_dir = config.get("video_compose", {}).get("params", {}).get("story_dir", "generated_stories/example")
         os.makedirs(story_dir, exist_ok=True)
         with open(os.path.join(story_dir, "full_text.txt"), "w", encoding="utf-8") as f:

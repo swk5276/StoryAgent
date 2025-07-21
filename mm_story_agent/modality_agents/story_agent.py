@@ -19,10 +19,13 @@ from mm_story_agent.base import register_tool
 from mm_story_agent.modality_agents.LLMqwen import QwenAgent  # QwenAgent 불러오기
 from mm_story_agent.modality_agents.LLMexaone import ExaoneAgent  # ExaoneAgent 불러오기
 
+from tqdm import trange
+import time  # optional: sleep() 넣고 싶다면 사용
+
 #전체 이야기 생성 파이프 라인의 중심 클래스 MMStoryAgent를 정의하고 실행하는 것
 from mm_story_agent.prompts_en2 import (
-    scene_expert_system,
-    scene_amateur_questioner_system,
+    # scene_expert_system,
+    # scene_amateur_questioner_system,
     scene_refined_output_system,
 )
 
@@ -219,9 +222,26 @@ class QAOutlineStoryWriter:
 
     # 텍스트 정제 및 교정하는 역할 
 
-# @register_tool : 각 에이전트에 이름을 붙여서 base.py 에 도구 레지스트리에 등록
+#############################################################
+# def parse_list(output: str):
+#     try:
+#         parsed = ast.literal_eval(output)
+#         return isinstance(parsed, list)
+#     except Exception:
+#         return False
 
-# 정제 에이전트
+# scene_extractor 출력 문자열을 안전하게 파싱하에 list[dict]로 반환하기
+def parse_list(output: str):
+    try:
+        parsed = json.loads(output)
+        if isinstance(parsed, list):
+            return parsed
+        else:
+            raise ValueError("Parsed content is not a list.")
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON: {e}")
+
+# 1. Whisper => 정제 에이전트
 @register_tool("RefineWriterAgent")
 class RefineWriterAgent:
     # config 설정 정보 받아와서 초기화 및 LLM.py의 모델을 가져와 초기화
@@ -236,47 +256,16 @@ class RefineWriterAgent:
         print("[RefineWriterAgent] 전체 텍스트 정제 완료.")  
         return response
 
-# 전체 이야기를 장면 단위로 나눔
-# 입력 : full_text / 처리 : LLM으로 장면을 추출
-# 리스트 형식인지 확인하는 함수
-def parse_list(output: str):
-    try:
-        parsed = ast.literal_eval(output)
-        return isinstance(parsed, list)
-    except Exception:
-        return False
-
-from tqdm import trange
-import time  # optional: sleep() 넣고 싶다면 사용
-
+# 2. 정제 에이전트 => 신 추출 에이전트
 @register_tool("SceneExtractorAgent")
 class SceneExtractorAgent:
     def __init__(self, cfg):
         self.cfg = cfg
         self.temperature = cfg.get("temperature", 0.7)
-        self.max_conv_turns = cfg.get("max_conv_turns", 3)
         self.llm_type = cfg.get("llm", "qwen")
 
-        # 각 역할의 LLM 초기화
-        print("[INFO] 전문가 LLM 초기화")
-        self.expert = init_tool_instance({
-            "tool": self.llm_type,
-            "cfg": {
-                "system_prompt": scene_expert_system,
-                "track_history": False
-            }
-        })
-
-        print("[INFO] 아마추어 LLM 초기화")
-        self.amateur = init_tool_instance({
-            "tool": self.llm_type,
-            "cfg": {
-                "system_prompt": scene_amateur_questioner_system,
-                "track_history": False
-            }
-        })
-
-        print("[INFO] 정제 LLM 초기화")
+        # 불필요한 Expert/Amateur LLM 제거
+        print("[INFO] 정제 LLM(Refiner) 초기화")
         self.refiner = init_tool_instance({
             "tool": self.llm_type,
             "cfg": {
@@ -287,42 +276,98 @@ class SceneExtractorAgent:
 
     def call(self, params):
         full_text = params["full_text"]
-        dialogue = []
+        print("\n[STEP 1] Directly refining scene list from full_text...")
 
-        print("\n[STEP 1] Generating initial scene draft (Expert)...")
-        initial_scene, _ = self.expert.call(full_text, temperature=self.temperature)
-        print(">>> Initial Scene Draft:\n", initial_scene.strip(), "\n")
-        dialogue.append(f"Expert: {initial_scene.strip()}")
+        # Refiner 호출
+        result_str, _ = self.refiner.call(full_text, temperature=self.temperature)
+        print("[DEBUG] Refiner result:\n", result_str)
 
-        print("[STEP 2] Starting Q&A Refinement Loop...\n")
-        for turn in trange(self.max_conv_turns, desc="Q&A Turns"):
-            print(f"\n--- Turn {turn+1} ---")
-            history = "\n".join(dialogue)
+        try:
+            final_scene_list = parse_list(result_str)  # parse_list가 실제 리스트 반환해야 함
+        except Exception as e:
+            print("[ERROR] Scene parsing failed.")
+            raise ValueError("Scene extraction failed.") from e
 
-            question, _ = self.amateur.call(f"{full_text}\n{history}", temperature=self.temperature)
-            print(f"[Amateur's Question]: {question.strip()}")
-            dialogue.append(f"Amateur: {question.strip()}")
-
-            answer, _ = self.expert.call(f"{full_text}\nQuestion: {question.strip()}", temperature=self.temperature)
-            print(f"[Expert's Answer]: {answer.strip()}")
-            dialogue.append(f"Expert: {answer.strip()}")
-
-        print("\n[STEP 3] Refining final scene list...")
-        final_prompt = "\n".join(dialogue)
-        final_scene_list, success = self.refiner.call(
-            f"{full_text}\n{final_prompt}",
-            success_check_fn=parse_list,
-            temperature=self.temperature
-        )
-
-        if not success:
-            print("[ERROR] Scene extraction failed.")
-            raise ValueError("Scene extraction failed.")
-
-        print("\n✅ Scene extraction complete. Final scene list:")
+        print("\nScene extraction complete. Final scene list:")
         print(final_scene_list)
-        return eval(final_scene_list)
 
+        return final_scene_list  # ✅ eval 제거
+
+
+# @register_tool("SceneExtractorAgent")
+# class SceneExtractorAgent:
+#     def __init__(self, cfg):
+#         self.cfg = cfg
+#         self.temperature = cfg.get("temperature", 0.7)
+#         # self.max_conv_turns = cfg.get("max_conv_turns", 3)
+#         self.llm_type = cfg.get("llm", "qwen")
+
+#         # 각 역할의 LLM 초기화
+#         print("[INFO] 전문가 LLM 초기화")
+#         self.expert = init_tool_instance({
+#             "tool": self.llm_type,
+#             "cfg": {
+#                 "system_prompt": scene_expert_system,
+#                 "track_history": False
+#             }
+#         })
+
+#         print("[INFO] 아마추어 LLM 초기화")
+#         self.amateur = init_tool_instance({
+#             "tool": self.llm_type,
+#             "cfg": {
+#                 "system_prompt": scene_amateur_questioner_system,
+#                 "track_history": False
+#             }
+#         })
+
+#         print("[INFO] 정제 LLM 초기화")
+#         self.refiner = init_tool_instance({
+#             "tool": self.llm_type,
+#             "cfg": {
+#                 "system_prompt": scene_refined_output_system,
+#                 "track_history": False
+#             }
+#         })
+
+#     def call(self, params):
+#         full_text = params["full_text"]
+#         dialogue = []
+#         print("\n[STEP 1] Generating initial scene draft (Expert)...")
+#         initial_scene, _ = self.expert.call(full_text, temperature=self.temperature)
+#         print(">>> Initial Scene Draft:\n", initial_scene.strip(), "\n")
+#         dialogue.append(f"Expert: {initial_scene.strip()}")
+
+#         print("[STEP 2] Starting Q&A Refinement Loop...\n")
+#         for turn in trange(self.max_conv_turns, desc="Q&A Turns"):
+#             print(f"\n--- Turn {turn+1} ---")
+#             history = "\n".join(dialogue)
+
+#             question, _ = self.amateur.call(f"{full_text}\n{history}", temperature=self.temperature)
+#             print(f"[Amateur's Question]: {question.strip()}")
+#             dialogue.append(f"Amateur: {question.strip()}")
+
+#             answer, _ = self.expert.call(f"{full_text}\nQuestion: {question.strip()}", temperature=self.temperature)
+#             print(f"[Expert's Answer]: {answer.strip()}")
+#             dialogue.append(f"Expert: {answer.strip()}")
+
+#         print("\n[STEP 3] Refining final scene list...")
+#         final_prompt = "\n".join(dialogue)
+#         final_scene_list, success = self.refiner.call(
+#             f"{full_text}\n{final_prompt}",
+#             success_check_fn=parse_list,
+#             temperature=self.temperature
+#         )
+
+#         if not success:
+#             print("[ERROR] Scene extraction failed.")
+#             raise ValueError("Scene extraction failed.")
+
+#         print("\n Scene extraction complete. Final scene list:")
+#         print(final_scene_list)
+#         return eval(final_scene_list)
+
+# 대본 에이전트
 @register_tool("SummaryWriterAgent")
 class SummaryWriterAgent:
     def __init__(self, cfg):

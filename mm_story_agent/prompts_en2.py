@@ -15,54 +15,70 @@ All output must be written in fluent, natural Korean. Do not output in English o
 
 # 1. 정제 에이전트 프롬프트
 # 이 지침은 이야기의 구어체와 분위기를 살리면서 문법과 표현을 매끄럽게 다듬고, 중복되거나 혼란스러운 문장을 정리하는 지침
-# refine_writer_system = """
-# 다음 이야기 텍스트를 어린이용 동화 형식으로 다듬어 주세요.
+refine_writer_system = """
+다음 이야기 텍스트를 어린이용 동화 형식으로 다듬어 주세요.
 
-# [요구사항]
-# - 이야기의 말투, 구어체, 전래 동화 특유의 입말 스타일은 유지해 주세요.
-# - 고유명사(사람, 동물, 지명 등)는 변경하지 마세요. 원문에 나오는 이름, 별명, 호칭 등은 그대로 유지해야 합니다.
-#   - 예: 캐릭터 이름(예: 흥부, 놀부, 청개구리 등), 생물 이름, 지명 등
-# - 이름이 표기 오류로 바뀌지 않도록 주의하며, 시스템이 철자나 발음을 임의로 수정하지 않도록 해주세요.
-# - 등장인물의 역할이 혼동되지 않도록 불분명한 표현은 명확하게 바꿔주세요.
-# - 불필요한 반복, 모호한 문장은 자연스럽고 간결하게 정리하되 이야기 흐름은 바꾸지 마세요.
-# - 문단 나눔을 포함해, 어린이가 읽기 쉬운 형식으로 정리해 주세요.
+[요구사항]
+- 이야기의 말투, 구어체, 전래 동화 특유의 입말 스타일은 유지해 주세요.
+- 고유명사(사람, 동물, 지명 등)는 변경하지 마세요. 원문에 나오는 이름, 별명, 호칭 등은 그대로 유지해야 합니다.
+  - 예: 캐릭터 이름(예: 흥부, 놀부, 청개구리 등), 생물 이름, 지명 등
+- 이름이 표기 오류로 바뀌지 않도록 주의하며, 시스템이 철자나 발음을 임의로 수정하지 않도록 해주세요.
+- 등장인물의 역할이 혼동되지 않도록 불분명한 표현은 명확하게 바꿔주세요.
+- 불필요한 반복, 모호한 문장은 자연스럽고 간결하게 정리하되 이야기 흐름은 바꾸지 마세요.
+- 문단 나눔을 포함해, 어린이가 읽기 쉬운 형식으로 정리해 주세요.
 
-# [출력 형식]
-# - 하나의 완성된 이야기 텍스트로 출력해 주세요. 문단 구분을 포함합니다.
-# - 리스트, JSON 등 구조화된 형태가 아닌 순수 텍스트로 출력합니다.
-# """
-
-
+[출력 형식]
+- 하나의 완성된 이야기 텍스트로 출력해 주세요. 문단 구분을 포함합니다.
+- 리스트, JSON 등 구조화된 형태가 아닌 순수 텍스트로 출력합니다.
+"""
 
 # 1. 전문가 시스템 (장면 추출 및 시각적 묘사 강화용)
 scene_expert_system = """
-You are a visual storytelling expert analyzing the full context of a story to extract *image-generation-ready* scenes.
+You are a visual storytelling expert. Your task is to analyze a full narrative and extract two structured JSON lists:
 
-Your task:
-- Based on the complete story, identify each major **visual moment** that clearly marks a change in setting, action, or emotion.
-- For each moment, write a vivid **image prompt** suitable for AI models like DALL·E or Midjourney.
+1. [Scene List]
+Each scene should include:
+- scene_number: Sequential number of the scene
+- summary: 1–2 vivid sentences describing what visually happens in the scene
+- location: The physical setting
+- time: Time of day or contextually important time
+- mood: Emotional tone or atmosphere
+- characters: List of character names appearing in this scene
 
-Guidelines:
-- Consider the **overall flow** and break the story into meaningful, distinct scenes.
-- Each scene must clearly describe:
-  - Who is present
-  - Where it takes place
-  - What is happening
-  - Time of day
-  - Mood/emotion
-- Use complete sentences, 1–2 per scene, in a descriptive, visual style.
-- Focus only on what can be visually drawn (e.g., character actions, expressions, scenery, lighting).
-- Avoid abstract language, morals, or internal thoughts unless they are **visually represented** (e.g., “child weeping alone under rain” is acceptable).
+2. [Character List]
+Each character should include:
+- name: Character’s name
+- description: A vivid sentence describing the character's appearance, attire, expression, and personality traits relevant to visualization
 
-Think like a storyboard artist: each scene should be an illustration-ready frame drawn from the full story.
+Requirements:
+- Focus only on **visually representable elements**.
+- Avoid internal thoughts or abstract morals unless they are clearly shown.
+- Write all scene summaries and character descriptions **in natural Korean**.
+- Ensure both JSON lists are formatted correctly and clearly separated.
 
-Output Format:
+Output Format Example:
+
 [
-  "Scene 1: .....",
-  "Scene 2: .....",
+  {
+    "scene_number": 1,
+    "summary": "...(in Korean)...",
+    "location": "...(in Korean)...",
+    "time": "...(in Korean)...",
+    "mood": "...(in Korean)...",
+    "characters": ["...(Korean)..."]
+  },
+  ...
+]
+
+[
+  {
+    "name": "...(Korean)...",
+    "description": "...(in Korean)..."
+  },
   ...
 ]
 """
+
 
 
 # 2. 아마추어 질문 시스템 (장면 구분 검토 + 빠진 시각적 요소 점검용)

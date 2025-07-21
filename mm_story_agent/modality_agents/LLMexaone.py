@@ -10,7 +10,7 @@ load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 # openai 패키지에 직접 할당하는 경우
 openai.api_key = api_key
-# (예비용) DashScope API 모듈 (현재는 사용되지 않음)
+# DashScope API 모듈 (현재는 사용되지 않음)
 from dashscope import Generation
 
 # 툴 등록을 위한 데코레이터
@@ -44,12 +44,10 @@ class ExaoneAgent(object):
         return True  # 정상 응답이면 True
 
     # 실제 LLM 호출 함수
-    # 사용 모델 : qwen2-72b-instruct  /  lgai/exaone-3-5-32b-instruct  /  
+    # 사용 모델 : qwen2-72b-instruct  /  lgai/exaone-3-5-32b-instruct  /  gpt-4o
     def call(self,
              prompt: str,  # LLM에 입력으로 줄 프롬프트 문자열
-            #  model_name: str = "lgai/exaone-3-5-32b-instruct",  # 사용할 모델 이름
-             model_name: str = "gpt-4o",  # 사용할 모델 이름
-             # model_name 예시: "lgai/exaone-3-5-32b-instruct", "gpt-4o"
+             model_name: str = "lgai/exaone-3-5-32b-instruct",  # 사용할 모델 이름
              top_p: float = 0.95,  # 확률 누적 기반 샘플링 (다양성 조절)
              temperature: float = 1.0,  # 랜덤성 조절 (창의성 정도)
              seed: int = 1,  # 동일한 결과를 얻기 위한 시드 값
@@ -76,12 +74,13 @@ class ExaoneAgent(object):
             # api_key="sk-c6abdec50898482e89a9d5c94741efe1",
             # base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
             
-            # 아래는 주석 처리된 Together.ai용 설정
-            # api_key="adb805e28e2ac4326e301c3d24ee8870e427e81006645089c49fdf23ab52216b",
-            # base_url="https://api.together.xyz/v1"
-            # gpt 4-o
-            api_key=openai.api_key,
-            base_url="https://api.openai.com/v1"  # OpenAI의 기본 엔드포인트
+            # Exaone 용 설정
+            api_key="adb805e28e2ac4326e301c3d24ee8870e427e81006645089c49fdf23ab52216b",
+            base_url="https://api.together.xyz/v1"
+
+            # gpt 4-o 용 설정
+            # api_key=openai.api_key,
+            # base_url="https://api.openai.com/v1"  # OpenAI의 기본 엔드포인트
 
         )
 

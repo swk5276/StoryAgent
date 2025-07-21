@@ -72,7 +72,7 @@ class ExaoneAgent(object):
             # api_key="adb805e28e2ac4326e301c3d24ee8870e427e81006645089c49fdf23ab52216b",
             # base_url="https://api.together.xyz/v1"
             # gpt 4-o
-            api_key=""
+            api_key="",
             base_url="https://api.openai.com/v1"  # OpenAI의 기본 엔드포인트
 
         )

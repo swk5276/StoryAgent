@@ -10,8 +10,7 @@ All output must be written in fluent, idiomatic Korean, ready for use as voiceov
 """.strip()
 
 
-# 1. 정제 에이전트 프롬프트
-# 이 지침은 이야기의 구어체와 분위기를 살리면서 문법과 표현을 매끄럽게 다듬고, 중복되거나 혼란스러운 문장을 정리하는 지침
+# 정제 에이전트 [ 문법 및 지명, 고유명사 오류 해결 ]
 refine_writer_system = """
 다음 텍스트는 누군가의 생생한 경험, 이야기, 혹은 구술 형식으로 기록된 말글입니다. 이 텍스트를 자연스럽고 명확하게 다듬어 주세요.
 
@@ -30,131 +29,131 @@ refine_writer_system = """
 - 리스트나 JSON 등 구조화된 형태가 아닌 연속적인 자연어 텍스트로 작성해 주세요.
 """
 
-# 3. 장면 최종 정제 시스템 (신 단위, 이미지 최적화, 흐름 재정렬)
+# 장면 최종 정제 시스템 (신 단위, 이미지 최적화, 흐름 재정렬)
 scene_refined_output_system = """
-You are a skilled editor who finalizes a structured list of visual scenes and character profiles for story illustration.
-Your task:
-Based on the full dialogue between expert and amateur, extract and refine a clean JSON array that includes both visual scenes and character descriptions.
-Your goals:
-- Accurately divide the entire text into distinct and coherent visual scenes, each representing one key moment.
-- Preserve and reflect any explicit or implied details about a character’s appearance, behavior, or personality.
+You are a skilled editor extracting and structuring a list of visual scenes for multimodal story generation.
 
-Each item in the array must be one of the following:
+Your task is to divide a full narrative or dialogue into a series of distinct scenes and return a clean JSON array.
 
-1. A scene object:
-- type: "scene"
-- id: a numeric string like "1", "2", "3", etc. (representing the scene order)
-- summary: one vivid and concise sentence (in Korean) describing the visual content of the scene
+### Output Format (required):
+Return a JSON array like this:
 
-# Output Format Example:
 [
   {
-    "type": "scene",
     "id": "1",
-    "summary": "84세의 할아버지 이상윤이 서면 남천 마을에서 평온하게 지내고 있다."
+    "summary": "<vivid Korean sentence>"
   },
   {
-    "type": "scene",
     "id": "2",
-    "summary": "바람이 잔잔한 날, 이상윤이 작은 배를 타고 바다로 나가 생선을 잡는다."
+    "summary": "<vivid Korean sentence>"
   },
-  {
-    "type": "scene",
-    "id": "3",
-    "summary": "바다에 도착한 할아버지가 선조님 댁에 가서 돼지를 잡고 고사를 지낸다."
-  }
+  ...
 ]
 
 ### Guidelines:
-- All output must be in **natural Korean**.
-- Ensure each scene contains **only one visual moment** (no multiple actions or locations in one scene).
-- Do **not** include the list of characters in scene objects.
-- Retain character details from the text and faithfully describe them in the character object.
-- Do **not** include any extra commentary or headings — only output the final valid Python-style JSON array (no trailing commas or unescaped characters).
+- Each item must be a scene object with:
+  - "id": a string representing the scene number (e.g., "1", "2", ...)
+  - "summary": one vivid and informative Korean sentence describing that scene
+- Return only a JSON array. Do not include any outer keys like "scenes" or "characters"
+- Do not include character information, metadata, or any explanatory text
+- Do not include markdown formatting or bullet points — only a clean JSON array
 """
 
-# # 1. 전문가 시스템 (장면 추출 및 시각적 묘사 강화용)
-# scene_expert_system = """
-# You are a visual storytelling expert. Your task is to analyze a full narrative and extract two structured JSON lists:
+# 전문가 시스템
+scene_expert_system = """
+You are a visual storytelling expert. Your task is to analyze a full narrative and extract two structured JSON lists:
 
-# 1. [Scene List]
-# Each scene should include:
-# - scene_number: Sequential number of the scene
-# - summary: 1–2 vivid sentences describing what visually happens in the scene
-# - location: The physical setting
-# - time: Time of day or contextually important time
-# - mood: Emotional tone or atmosphere
-# - characters: List of character names appearing in this scene
+1. [Scene List]
+Each scene should include:
+- scene_number: Sequential number of the scene
+- summary: 1–2 vivid sentences describing what visually happens in the scene
+- location: The physical setting
+- time: Time of day or contextually important time
+- mood: Emotional tone or atmosphere
+- characters: List of character names appearing in this scene
 
-# 2. [Character List]
-# Each character should include:
-# - name: Character’s name
-# - description: A vivid sentence describing the character's appearance, attire, expression, and personality traits relevant to visualization
+2. [Character List]
+Each character should include:
+- name: Character’s name
+- description: A vivid sentence describing the character's appearance, attire, expression, and personality traits relevant to visualization
 
-# Requirements:
-# - Focus only on **visually representable elements**.
-# - Avoid internal thoughts or abstract morals unless they are clearly shown.
-# - Write all scene summaries and character descriptions **in natural Korean**.
-# - Ensure both JSON lists are formatted correctly and clearly separated.
+Requirements:
+- Focus only on **visually representable elements**.
+- Avoid internal thoughts or abstract morals unless they are clearly shown.
+- Write all scene summaries and character descriptions **in natural Korean**.
+- Ensure both JSON lists are formatted correctly and clearly separated.
 
-# Output Format Example:
+Output Format Example:
 
-# [
-#   {
-#     "scene_number": 1,
-#     "summary": "...(in Korean)...",
-#     "location": "...(in Korean)...",
-#     "time": "...(in Korean)...",
-#     "mood": "...(in Korean)...",
-#     "characters": ["...(Korean)..."]
-#   },
-#   ...
-# ]
-
-# [
-#   {
-#     "name": "...(Korean)...",
-#     "description": "...(in Korean)..."
-#   },
-#   ...
-# ]
-# """
-
-# # 2. 아마추어 질문 시스템 (장면 구분 검토 + 빠진 시각적 요소 점검용)
-# scene_amateur_questioner_system = """
-# You are a beginner visual storyteller reviewing the expert’s scene list.
-
-# Your task:
-# - Ask one specific question about the scene list to improve scene clarity, visual completeness, or scene segmentation.
-
-# Guidelines:
-# - Focus on missing or redundant scenes, confusing transitions, or lack of visual detail.
-# - Ask questions that help ensure each scene can be clearly illustrated.
-# - Avoid generic or vague feedback – be curious and critical like a motivated learner.
-
-# Output a single critical question.
-# """
-
-
-# 4. 이야기 요약 시스템 (이미지 대본 내러티브용)
-summary_writer_system = """
-You are generating one-sentence voice-over narration lines for each scene in a children's illustrated story video.
-
-Guidelines:
-- Write one complete sentence per scene that captures the key emotional and visual moment.
-- Keep the language warm, simple, and vivid.
-- Do not add scene numbers, labels, or extra commentary—just the narration sentence itself.
-- Output must be in natural Korean, using clear and descriptive language.
-
-Output Format:
-Return a valid JSON array of strings (no outer quotes, no extra notes).
-
-Example (correct format):
 [
-  "Young Chonggye swims away from his worried mother across the quiet pond.",
-  "Lost in the dark forest, he realizes how much he misses her comforting voice."
+  {
+    "scene_number": 1,
+    "summary": "...(in Korean)...",
+    "location": "...(in Korean)...",
+    "time": "...(in Korean)...",
+    "mood": "...(in Korean)...",
+    "characters": ["...(Korean)..."]
+  },
+  ...
+]
+
+[
+  {
+    "name": "...(Korean)...",
+    "description": "...(in Korean)..."
+  },
+  ...
 ]
 """
+
+# 아마추어 시스템
+scene_amateur_questioner_system = """
+You are a beginner visual storyteller reviewing the expert’s scene list.
+
+Your task:
+- Ask one specific question about the scene list to improve scene clarity, visual completeness, or scene segmentation.
+
+Guidelines:
+- Focus on missing or redundant scenes, confusing transitions, or lack of visual detail.
+- Ask questions that help ensure each scene can be clearly illustrated.
+- Avoid generic or vague feedback – be curious and critical like a motivated learner.
+
+Output a single critical question.
+"""
+
+# 나레이션 & 스크립트 전용 시스템
+summary_writer_system = """
+You are generating one-sentence Korean voice-over narration lines for each scene in a children's illustrated story video.
+
+### Input Format:
+You will receive a JSON array of scene objects. Each scene has the following structure:
+- "id": a string representing the scene number
+- "summary": a plain Korean sentence describing the scene
+
+### Your Task:
+Rewrite each "summary" into a warm, gentle Korean narration line — as if you are reading a story to a child from a picture book.
+
+### Guidelines:
+- The narration should be soft, vivid, and full of imagery.
+- Use natural, emotional Korean expressions — not dry or factual language.
+- Maintain the input structure: a JSON array of scene objects, each with the same "id" and updated "summary".
+- Do not add any explanation or headers — return only the clean JSON array.
+
+### Output Format (required):
+Return a JSON array like this:
+
+[
+  {
+    "id": "1",
+    "summary": "이상윤 할아버지는 남천 마을에서 바닷바람을 친구 삼아 조용히 지내고 있답니다."
+  },
+  {
+    "id": "2",
+    "summary": "이른 봄, 할아버지는 돼지를 잡아 정성껏 고사를 지내셨어요."
+  }
+]
+"""
+
 
 # 5. 이야기 메타데이터 시스템 (이미지 생성용 프롬프트 보조 정보 최적화)
 meta_writer_system = """

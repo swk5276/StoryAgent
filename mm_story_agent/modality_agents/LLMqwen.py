@@ -39,6 +39,7 @@ class QwenAgent(object):
     # 사용 모델 : qwen2-72b-instruct  /  lgai/exaone-3-5-32b-instruct  /  
     def call(self,
              prompt: str,  # LLM에 입력으로 줄 프롬프트 문자열
+            #  model_name: str = "qwen2-72b-instruct",  # 사용할 모델 이름
              model_name: str = "qwen2-72b-instruct",  # 사용할 모델 이름
              # model_name 예시: "lgai/exaone-3-5-32b-instruct", "gpt-4o"
              top_p: float = 0.95,  # 확률 누적 기반 샘플링 (다양성 조절)

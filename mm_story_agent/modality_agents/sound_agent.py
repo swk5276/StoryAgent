@@ -25,7 +25,7 @@ class AudioLDM2Synthesizer:
             torch_dtype=torch.float16  # FP16로 속도/메모리 최적화
         ).to(self.device)
 
-    # 🎧 효과음 생성 함수
+    # 효과음 생성 함수
     def call(self,
              prompts: List[str],              # 오디오 생성에 사용할 텍스트 목록
              n_candidate_per_text: int = 3,   # 프롬프트당 생성할 오디오 수
@@ -97,7 +97,7 @@ class AudioLDM2Agent:
             "prompts": sound_prompts,
         }
 
-    # 📘 스토리로부터 효과음 설명 프롬프트 생성
+    #  스토리로부터 효과음 설명 프롬프트 생성
     def generate_sound_prompt_from_story(
             self,
             pages: List,  # 각 페이지는 하나의 텍스트

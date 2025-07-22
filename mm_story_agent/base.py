@@ -1,9 +1,6 @@
-# 에이전트 등록 및 초기화 담당
-# ABC 클래스는 향후 확장성을 위한 추상 클래스 기반 구조를 지원하기 위해 임포트됨
+# 에이전트 등록 및 초기화 담당 [ ABC 클래스는 향후 확장성을 위한 추상 클래스 기반 구조를 지원하기 위해 임포트됨 ]
 from abc import ABC
 
-# 에이전트 이름(key)과 해당 클래스 이름(value)을 매핑하는 딕셔너리
-# init_tool_instanace()가 해당 에이전트를 찾을 수 있도록
 register_map = {
     'qwen': 'QwenAgent',
     'exaone': 'ExaoneAgent',
@@ -16,7 +13,7 @@ register_map = {
     'freesound_sfx_retrieval': 'FreesoundSfxAgent',
     'freesound_music_retrieval': 'FreesoundMusicAgent',
     'refine_writer': 'RefineWriterAgent',
-    'scene_splitter': 'SceneExtractorAgent',
+    'scene_extractor': 'SceneExtractorAgent',
     'summary_writer': 'SummaryWriterAgent',
     'meta_writer': 'MetaWriterAgent',
 }    

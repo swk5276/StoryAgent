@@ -1,14 +1,9 @@
-# 타입 힌트와 콜백 함수 정의를 위한 타입 모듈
 from typing import Dict, Callable
 import os
-
-# (예비용) DashScope API 모듈 (현재는 사용되지 않음)
+from dotenv import load_dotenv
+import openai
 from dashscope import Generation
-
-# 툴 등록을 위한 데코레이터
 from mm_story_agent.base import register_tool
-
-# OpenAI 호환 클라이언트 (Together.ai, Dashscope 등 사용 가능)
 from openai import OpenAI
 
 # "qwen"이라는 이름으로 에이전트를 등록
@@ -36,11 +31,11 @@ class QwenAgent(object):
         return True  # 정상 응답이면 True
 
     # 실제 LLM 호출 함수
-    # 사용 모델 : qwen2-72b-instruct  /  lgai/exaone-3-5-32b-instruct  /  
+    # 사용 모델 : qwen2-72b-instruct  /  lgai/exaone-3-5-32b-instruct  /  gpt-4o
     def call(self,
              prompt: str,  # LLM에 입력으로 줄 프롬프트 문자열
             #  model_name: str = "qwen2-72b-instruct",  # 사용할 모델 이름
-             model_name: str = "qwen2-72b-instruct",  # 사용할 모델 이름
+             model_name: str = "gpt-4o",  # 사용할 모델 이름
              # model_name 예시: "lgai/exaone-3-5-32b-instruct", "gpt-4o"
              top_p: float = 0.95,  # 확률 누적 기반 샘플링 (다양성 조절)
              temperature: float = 1.0,  # 랜덤성 조절 (창의성 정도)
@@ -65,12 +60,16 @@ class QwenAgent(object):
         # OpenAI 호환 클라이언트 생성 (현재는 Dashscope 방식 사용)
         client = OpenAI(
             # 알리바바 DashScope API 키 및 엔드포인트
-            api_key="sk-c6abdec50898482e89a9d5c94741efe1",
-            base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+            # api_key="sk-c6abdec50898482e89a9d5c94741efe1",
+            # base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
             
             # 아래는 주석 처리된 Together.ai용 설정
             # api_key="adb805e28e2ac4326e301c3d24ee8870e427e81006645089c49fdf23ab52216b",
             # base_url="https://api.together.xyz/v1"
+
+            # gpt 4-o 용 설정
+            api_key=openai.api_key,
+            base_url="https://api.openai.com/v1"  # OpenAI의 기본 엔드포인트
         )
 
         # 최대 max_try 횟수만큼 재시도 루프

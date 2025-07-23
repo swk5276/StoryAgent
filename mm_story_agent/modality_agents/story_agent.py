@@ -11,14 +11,13 @@ from mm_story_agent.base import register_tool
 from mm_story_agent.modality_agents.LLMqwen import QwenAgent  # QwenAgent 불러오기
 from mm_story_agent.modality_agents.LLMexaone import ExaoneAgent  # ExaoneAgent 불러오기
 from tqdm import trange
-import time  # optional: sleep() 넣고 싶다면 사용
+import time
 from mm_story_agent.prompts_en2 import (
     # scene_expert_system,
     # scene_amateur_questioner_system,
     scene_refined_output_system,
 )
 
-# 리스트 형태로 반환하는 함수
 def parse_list(output: str):
     try:
         parsed = json.loads(output)
@@ -29,7 +28,6 @@ def parse_list(output: str):
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON: {e}")
 
-# 1. Whisper text => Refine Writer
 @register_tool("RefineWriterAgent")
 class RefineWriterAgent:
     # config 설정 정보 받아와서 초기화 및 LLM.py의 모델을 가져와 초기화
@@ -44,7 +42,27 @@ class RefineWriterAgent:
         print("[RefineWriterAgent] 전체 텍스트 정제 완료.")  
         return response
 
-# 2. 정제 에이전트 => 신 추출 에이전트
+@register_tool("PostCorrectionAgent")
+class PostCorrectionAgent:
+    def __init__(self, cfg):
+        self.llm = ExaoneAgent(cfg)
+
+    def call(self, params):
+        print("[PostCorrectionAgent] 고유명사 오류 수정 중")
+        prompt = f"""
+다음은 이야기 본문입니다. 이 글에서 고유명사(지명, 인명 등)를 점검하여 명백한 오류가 있는 경우 바르게 수정해 주세요. 흐름은 그대로 두고, 수정된 단어만 자연스럽게 바꿔 주세요.
+
+본문:
+{params['text']}
+
+수정된 본문을 전체 출력해 주세요. 다른 설명이나 해설은 넣지 마세요.
+"""
+        response, _ = self.llm.call(prompt)
+        print("[PostCorrectionAgent] 고유명사 수정 완료")
+        return response
+
+
+
 @register_tool("SceneExtractorAgent")
 class SceneExtractorAgent:
     def __init__(self, cfg):
@@ -112,11 +130,26 @@ class SummaryWriterAgent:
 class MetaWriterAgent:
     def __init__(self, cfg):
         self.llm = QwenAgent(cfg)
-    def call(self, params):
-        joined = "\n".join(params["scene_text"])
-        response, _ = self.llm.call(f"Extract metadata (genre, tone, setting, themes, target age) from:\n{joined}")
-        return response 
 
+    def call(self, params):
+        scenes = params["scene_text"]
+
+        if not isinstance(scenes, list):
+            raise ValueError("scene_text must be a list of scene objects")
+
+        # JSON 배열로 직렬화
+        prompt = json.dumps(scenes, ensure_ascii=False, indent=2)
+
+        # 시스템 프롬프트는 cfg에 포함되어 있다고 가정
+        response, _ = self.llm.call(prompt)
+
+        try:
+            parsed = json.loads(response)
+            if not isinstance(parsed, list):
+                raise ValueError("LLM response was not a list.")
+            return parsed
+        except Exception as e:
+            raise ValueError(f"Failed to parse LLM metadata output: {e}")
 
 
 

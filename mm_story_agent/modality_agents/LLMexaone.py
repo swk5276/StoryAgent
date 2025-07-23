@@ -19,6 +19,7 @@ from mm_story_agent.base import register_tool
 # OpenAI 호환 클라이언트 (Together.ai, Dashscope 등 사용 가능)
 from openai import OpenAI
 
+
 # "exaone"이라는 이름으로 에이전트를 등록
 @register_tool("exaone")
 class ExaoneAgent(object):
@@ -47,7 +48,7 @@ class ExaoneAgent(object):
     # 사용 모델 : qwen2-72b-instruct  /  lgai/exaone-3-5-32b-instruct  /  gpt-4o
     def call(self,
              prompt: str,  # LLM에 입력으로 줄 프롬프트 문자열
-             model_name: str = "lgai/exaone-3-5-32b-instruct",  # 사용할 모델 이름
+             model_name: str = "gpt-4o",  # 사용할 모델 이름
              top_p: float = 0.95,  # 확률 누적 기반 샘플링 (다양성 조절)
              temperature: float = 1.0,  # 랜덤성 조절 (창의성 정도)
              seed: int = 1,  # 동일한 결과를 얻기 위한 시드 값
@@ -75,12 +76,12 @@ class ExaoneAgent(object):
             # base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
             
             # Exaone 용 설정
-            api_key="adb805e28e2ac4326e301c3d24ee8870e427e81006645089c49fdf23ab52216b",
-            base_url="https://api.together.xyz/v1"
+            # api_key="adb805e28e2ac4326e301c3d24ee8870e427e81006645089c49fdf23ab52216b",
+            # base_url="https://api.together.xyz/v1"
 
             # gpt 4-o 용 설정
-            # api_key=openai.api_key,
-            # base_url="https://api.openai.com/v1"  # OpenAI의 기본 엔드포인트
+            api_key=openai.api_key,
+            base_url="https://api.openai.com/v1"  # OpenAI의 기본 엔드포인트
 
         )
 
@@ -126,4 +127,5 @@ class ExaoneAgent(object):
 
         # 최종 응답 및 성공 여부 반환
         return response, success
+
 

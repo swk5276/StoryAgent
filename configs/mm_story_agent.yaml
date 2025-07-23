@@ -15,7 +15,13 @@ story_writer:
 #################################################
 refine_writer:
   tool: RefineWriterAgent
-  cfg: {} 
+  cfg:
+    system_prompt: ${refine_writer_system}
+
+post_correction:
+  tool: PostCorrectionAgent
+  cfg:
+    system_prompt: "" 
 
 scene_extractor:
   tool: SceneExtractorAgent

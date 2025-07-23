@@ -1,15 +1,8 @@
-# 파일 경로를 위한 모듈
 from pathlib import Path
-# JSON 데이터 직렬화/역직렬화를 위한 모듈
 import json
-# 타입 힌트를 위한 모듈들
 from typing import List, Union, Dict
-
-# 오디오 저장을 위한 라이브러리
 import soundfile as sf
-# 오디오 리샘플링을 위한 라이브러리
 import torchaudio
-# Hugging Face MusicGen 모델 관련 모듈
 from transformers import AutoProcessor, MusicgenForConditionalGeneration
 
 # 음악 생성 관련 시스템 프롬프트 (스토리 → 음악 프롬프트 생성 및 리뷰용)

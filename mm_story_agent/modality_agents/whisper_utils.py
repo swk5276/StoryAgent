@@ -11,16 +11,6 @@ WHISPER_MODELS = [
     "openai/whisper-medium"
 ]
 
-# 음성 인식 텍스트 삽입하기
-def inject_whisper_text_to_config(config, whisper_text: str):
-    # full_context field
-    if "story_writer" not in config:
-        config["story_writer"] = {}
-    if "params" not in config["story_writer"]:
-        config["story_writer"]["params"] = {}
-    config["story_writer"]["params"]["full_context"] = whisper_text
-    print("[INFO] Whisper 텍스트가 story_writer.params.full_context에 삽입되었습니다.")
-
 
 def transcribe_audio(audio_path: str, model_name: str) -> str:
     print(f"[INFO] HuggingFace Whisper 모델 로드 중... (모델: {model_name})")
@@ -32,6 +22,50 @@ def transcribe_audio(audio_path: str, model_name: str) -> str:
     )
     result = pipe(audio_path)
     return result["text"].strip()
+
+# 여러가지 whisper 모델 사용 가능
+# WHISPER_MODELS = [
+#     "seastar105/whisper-medium-ko-zeroth", 
+#     "seongsubae/openai-whisper-large-v3-turbo-ko-TEST"  #
+# ]
+
+# from transformers import pipeline, AutoModelForSpeechSeq2Seq, AutoProcessor
+
+# def transcribe_audio(audio_path: str, model_name: str) -> str:
+#     from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
+
+#     print(f"[INFO] HuggingFace Whisper 모델 로드 중... (모델: {model_name})")
+
+#     model = AutoModelForSpeechSeq2Seq.from_pretrained(model_name)
+#     processor = AutoProcessor.from_pretrained(model_name)
+
+#     # 핵심 설정
+#     model.generation_config.no_timestamps_token_id = 50363
+#     model.generation_config.return_timestamps = False
+
+#     pipe = pipeline(
+#         task="automatic-speech-recognition",
+#         model=model,
+#         tokenizer=processor.tokenizer,
+#         feature_extractor=processor.feature_extractor,
+#         device=0 if torch.cuda.is_available() else -1,
+#         chunk_length_s=30  
+#     )
+
+#     result = pipe(audio_path)
+#     return result["text"].strip()
+
+
+# 음성 인식 텍스트 삽입하기
+def inject_whisper_text_to_config(config, whisper_text: str):
+    # full_context field
+    if "story_writer" not in config:
+        config["story_writer"] = {}
+    if "params" not in config["story_writer"]:
+        config["story_writer"]["params"] = {}
+    config["story_writer"]["params"]["full_context"] = whisper_text
+    print("[INFO] Whisper 텍스트가 story_writer.params.full_context에 삽입되었습니다.")
+
 
 def transcribe_and_save_all_models(audio_path: str, story_dir: str) -> list:
     all_texts = []
@@ -66,14 +100,6 @@ def summarize_and_save_final_text(all_texts: list, story_dir: str, llm_agent) ->
         f.write(final_text.strip())
     print(f"[INFO] 최종 통합 텍스트가 {final_path}에 저장되었습니다.")
     return final_text.strip()
-
-# def inject_whisper_text_to_config(config, whisper_text: str):
-#     if "story_writer" not in config:
-#         config["story_writer"] = {}
-#     if "params" not in config["story_writer"]:
-#         config["story_writer"]["params"] = {}
-#     config["story_writer"]["params"]["full_context"] = whisper_text
-#     print("[INFO] Whisper 텍스트가 story_writer.params.full_context에 삽입되었습니다.")
 
 # FineTuning된 whisper 모델 사용 시
 # def transcribe_audio(audio_path: str, model_name: str = "seongsubae/openai-whisper-large-v3-turbo-ko-TEST") -> str:
